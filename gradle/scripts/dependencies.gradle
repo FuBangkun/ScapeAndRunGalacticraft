@@ -79,7 +79,9 @@ dependencies {
     // }
 
     modImplementation 'curse.maven:galacticraft-legacy-564236:6364107'
-    modImplementation 'curse.maven:scape-and-run-parasites-348025:5370258'
+    modCompileOnly 'curse.maven:scape-and-run-parasites-348025:8787918'
+
+    implementation files('libs/mixin-0.8.7.jar', 'libs/mixinextras-common-0.5.4.jar')
 }
 
 if (propertyBool('enable_shadow')) {

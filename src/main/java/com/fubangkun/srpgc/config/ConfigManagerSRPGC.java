@@ -7,7 +7,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 public final class ConfigManagerSRPGC {
 
     private static final String CATEGORY_GENERAL = "general";
-    private static final String CATEGORY_STRUCTURES = "structures";
+    private static final String CATEGORY_ORIGIN = "origin";
     private static final String CATEGORY_DEBUG = "debug";
     private static final int DEFAULT_DIMENSION_ID = -40;
 
@@ -15,12 +15,8 @@ public final class ConfigManagerSRPGC {
     public static int tier = 3;
     public static int startPhase = 4;
     public static boolean injectSRPConfig = true;
-    public static boolean seedStructures = true;
-    public static int maxNodes = 6;
-    public static int maxColonies = 3;
-    public static boolean starterNode = true;
-    public static int nodeCellChunks = 800;
-    public static int colonyCellChunks = 160;
+    public static boolean seedOrigin = true;
+    public static int originRadius = 200;
     public static boolean debugLogging = false;
 
     private ConfigManagerSRPGC() {
@@ -35,28 +31,20 @@ public final class ConfigManagerSRPGC {
         tier = clamp(config.getInt("tier", CATEGORY_GENERAL, 3, 1, 3,
                 "Rocket tier required to reach Xenosis."), 1, 3);
         startPhase = clamp(config.getInt("startPhase", CATEGORY_GENERAL, 4, 0, 10,
-                "SRP evolution phase Xenosis starts at."), 0, 10);
+                "SRP evolution phase used by the Xenosis spawn table."), 0, 10);
         injectSRPConfig = config.getBoolean("injectSRPConfig", CATEGORY_GENERAL, true,
                 "Inject the dimension and biome entries Xenosis needs into SRP's in-memory configuration.");
-        seedStructures = config.getBoolean("seedStructures", CATEGORY_STRUCTURES, true,
-                "Seed SRP nodes and colonies while Xenosis chunks are populated.");
-        maxNodes = clamp(config.getInt("maxNodes", CATEGORY_STRUCTURES, 6, 1, 20,
-                "Maximum number of seeded SRP nodes in Xenosis."), 1, 20);
-        maxColonies = clamp(config.getInt("maxColonies", CATEGORY_STRUCTURES, 3, 1, 20,
-                "Maximum number of seeded SRP colonies in Xenosis."), 1, 20);
-        starterNode = config.getBoolean("starterNode", CATEGORY_STRUCTURES, true,
-                "Guarantee one SRP node and one colony near the Xenosis world spawn.");
-        nodeCellChunks = clamp(config.getInt("nodeCellChunks", CATEGORY_STRUCTURES, 800, 1, 100000,
-                "Side length in chunks of one node placement cell."), 1, 100000);
-        colonyCellChunks = clamp(config.getInt("colonyCellChunks", CATEGORY_STRUCTURES, 160, 1, 100000,
-                "Side length in chunks of one colony placement cell."), 1, 100000);
+        seedOrigin = config.getBoolean("seedOrigin", CATEGORY_ORIGIN, true,
+                "Seed one SRP emerging infestation vector (origin) at the Xenosis world spawn.");
+        originRadius = clamp(config.getInt("originRadius", CATEGORY_ORIGIN, 200, 1, 100000,
+                "Initial radius of the seeded Xenosis origin."), 1, 100000);
         debugLogging = config.getBoolean("debugLogging", CATEGORY_DEBUG, false,
-                "Log SRP injection and structure seeding details.");
+                "Log SRP injection and origin seeding details.");
 
         config.save();
 
-        SRPGC.LOGGER.info("Loaded configuration: dimensionId={}, tier={}, startPhase={}, injectSRPConfig={}, seedStructures={}",
-                dimensionId, tier, startPhase, injectSRPConfig, seedStructures);
+        SRPGC.LOGGER.info("Loaded configuration: dimensionId={}, tier={}, startPhase={}, injectSRPConfig={}, seedOrigin={}, originRadius={}",
+                dimensionId, tier, startPhase, injectSRPConfig, seedOrigin, originRadius);
     }
 
     public static void debug(String message, Object... args) {

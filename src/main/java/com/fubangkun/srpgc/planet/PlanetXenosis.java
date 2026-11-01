@@ -75,6 +75,11 @@ public final class PlanetXenosis {
     }
 
     public static void postInit() {
+        if (BiomeXenosis.INSTANCE != null) {
+            BiomeXenosis.INSTANCE.setBlocks();
+            BiomeXenosis.INSTANCE.mobListClear();
+        }
+
         DimensionType type = XenosisDimensions.findType();
         XenosisDimensions.setType(type);
 

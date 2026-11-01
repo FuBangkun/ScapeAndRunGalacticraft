@@ -2,14 +2,20 @@ package com.fubangkun.srpgc.compat;
 
 import com.dhanantry.scapeandrunparasites.util.config.SRPConfigSystems;
 import com.dhanantry.scapeandrunparasites.util.config.SRPConfigWorld;
+import com.dhanantry.scapeandrunparasites.util.ParasiteEventWorld;
 import com.dhanantry.scapeandrunparasites.world.SRPSaveData;
+import com.dhanantry.scapeandrunparasites.world.SRPWorldData;
 import com.fubangkun.srpgc.Reference;
 import com.fubangkun.srpgc.SRPGC;
 import com.fubangkun.srpgc.config.ConfigManagerSRPGC;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -150,27 +156,31 @@ public final class SRPCompat {
     }
 
     private static void ensureDimensionEntry(World world) {
-        if (!ConfigManagerSRPGC.injectSRPConfig) {
+        if (!ConfigManagerSRPGC.injectSRPConfig || world.isRemote) {
             return;
         }
 
         try {
-            SRPSaveData data = SRPSaveData.get(world);
+            int dimId = ConfigManagerSRPGC.dimensionId;
+            SRPSaveData data = SRPSaveData.get(world, dimId);
+            if (data == null) {
+                SRPGC.LOGGER.warn("SRP save data is unavailable; skipping Xenosis SRP setup.");
+                return;
+            }
             if (data == lastCheckedData) {
                 return;
             }
 
-            int dimId = ConfigManagerSRPGC.dimensionId;
             try {
                 if (!hasDimensionEntry(data, dimId)) {
-                    addDimension(dimId);
-                    data.setEvolutionPhase(dimId, (byte) ConfigManagerSRPGC.startPhase, true, world, true);
+                    addDimension(data, dimId);
+                    data.setEvolutionPhase(dimId, (byte) ConfigManagerSRPGC.startPhase, true, world);
                 }
             } catch (ReflectiveOperationException e) {
                 SRPGC.LOGGER.warn("Could not inspect SRP's dimension list; falling back to the phase-0 check.", e);
-                addDimension(dimId);
+                addDimension(data, dimId);
                 if (data.getEvolutionPhase(dimId) == 0 && ConfigManagerSRPGC.startPhase != 0) {
-                    data.setEvolutionPhase(dimId, (byte) ConfigManagerSRPGC.startPhase, true, world, true);
+                    data.setEvolutionPhase(dimId, (byte) ConfigManagerSRPGC.startPhase, true, world);
                 }
             }
 
@@ -179,7 +189,44 @@ public final class SRPCompat {
                     data.getEvolutionPhase(dimId), ConfigManagerSRPGC.startPhase);
             checkBiomeBlacklist();
         } catch (Exception e) {
-            SRPGC.LOGGER.error("Failed to add Xenosis to existing SRP save data; its evolution phase may stay at 0.", e);
+            SRPGC.LOGGER.error("Failed to prepare Xenosis SRP save data.", e);
+        }
+    }
+
+    private static void ensureOriginSeed(EntityPlayer player) {
+        if (!ConfigManagerSRPGC.seedOrigin) {
+            return;
+        }
+        if (player == null || player.world == null || player.world.isRemote) {
+            return;
+        }
+        if (!SRPConfigWorld.originActivated) {
+            SRPGC.LOGGER.warn("SRP's origin system is disabled; Xenosis will not spawn parasites.");
+            return;
+        }
+
+        World world = player.world;
+        SRPWorldData data = SRPWorldData.get(world);
+        if (data == null) {
+            return;
+        }
+        ConfigManagerSRPGC.debug("Xenosis origin seed check: dimension {}, existing origins {}.",
+                world.provider.getDimension(), data.getorigins("x").size());
+        if (!data.getorigins("x").isEmpty()) {
+            return;
+        }
+
+        int x = MathHelper.floor(player.posX);
+        int z = MathHelper.floor(player.posZ);
+        BlockPos pos = world.getHeight(new BlockPos(x, 0, z));
+        int result = ParasiteEventWorld.placeOriginInWorld(world, pos, SRPConfigWorld.originHealth,
+                ConfigManagerSRPGC.originRadius);
+        if (result == 1 || result == 2) {
+            SRPGC.LOGGER.info("Seeded Xenosis EIV origin near ({}, {}, {}) with radius {} (result {}).",
+                    pos.getX(), pos.getY(), pos.getZ(), ConfigManagerSRPGC.originRadius, result);
+        } else {
+            SRPGC.LOGGER.warn("Could not seed Xenosis EIV origin near ({}, {}, {}): result {}.",
+                    pos.getX(), pos.getY(), pos.getZ(), result);
         }
     }
 
@@ -190,10 +237,10 @@ public final class SRPCompat {
         return ids != null && ids.contains(dimId);
     }
 
-    private static void addDimension(int dimId) throws ReflectiveOperationException {
+    private static void addDimension(SRPSaveData data, int dimId) throws ReflectiveOperationException {
         Method method = SRPSaveData.class.getDeclaredMethod("addDim", int.class);
         method.setAccessible(true);
-        method.invoke(null, dimId);
+        method.invoke(data, dimId);
     }
 
     private static void checkBiomeBlacklist() {
@@ -226,6 +273,24 @@ public final class SRPCompat {
                 return;
             }
             ensureDimensionEntry(world);
+        }
+
+        @SubscribeEvent
+        public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+            if (event.player.world.isRemote || event.toDim != ConfigManagerSRPGC.dimensionId) {
+                return;
+            }
+            ensureDimensionEntry(event.player.world);
+            ensureOriginSeed(event.player);
+        }
+
+        @SubscribeEvent
+        public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+            if (event.player.world.isRemote || event.player.dimension != ConfigManagerSRPGC.dimensionId) {
+                return;
+            }
+            ensureDimensionEntry(event.player.world);
+            ensureOriginSeed(event.player);
         }
     }
 }

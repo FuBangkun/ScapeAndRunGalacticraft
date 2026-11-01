@@ -19,3 +19,14 @@ spotless {
         removeUnusedImports()
     }
 }
+
+// SRP 1.10.9 is a coremod + mod. FML's dev command-line coremod path does not
+// register the contained mod, so place the dev-remapped jar in run/mods too.
+tasks.register('copySrpModForDev', Copy) {
+    from(configurations.mcpCompileModClasspath.filter { it.name.startsWith('scape-and-run-parasites-') })
+    into file('run/mods')
+}
+
+tasks.matching { it.name == 'runClient' || it.name == 'runServer' }.configureEach {
+    dependsOn 'copySrpModForDev'
+}
