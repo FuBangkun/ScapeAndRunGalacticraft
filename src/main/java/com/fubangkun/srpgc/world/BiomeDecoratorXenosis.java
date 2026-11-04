@@ -52,7 +52,7 @@ public class BiomeDecoratorXenosis extends BiomeDecoratorSpace {
     private void place(WorldGenerator generator, int count) {
         World world = this.getCurrentWorld();
         for (int i = 0; i < count; i++) {
-            // The vanilla +8 offset keeps decoration spill inside the already loaded +X/+Z neighbours.
+            // The vanilla +8 offset keeps decoration spill inside the already loaded +X/+Z neighbors.
             BlockPos pos = world.getHeight(new BlockPos(this.posX + DECORATION_OFFSET + this.rand.nextInt(16), 0,
                     this.posZ + DECORATION_OFFSET + this.rand.nextInt(16)));
             generator.generate(world, this.rand, pos);

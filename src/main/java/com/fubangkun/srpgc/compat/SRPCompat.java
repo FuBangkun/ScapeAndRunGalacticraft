@@ -1,13 +1,15 @@
 package com.fubangkun.srpgc.compat;
 
+import com.dhanantry.scapeandrunparasites.util.ParasiteEventWorld;
 import com.dhanantry.scapeandrunparasites.util.config.SRPConfigSystems;
 import com.dhanantry.scapeandrunparasites.util.config.SRPConfigWorld;
-import com.dhanantry.scapeandrunparasites.util.ParasiteEventWorld;
 import com.dhanantry.scapeandrunparasites.world.SRPSaveData;
 import com.dhanantry.scapeandrunparasites.world.SRPWorldData;
 import com.fubangkun.srpgc.Reference;
 import com.fubangkun.srpgc.SRPGC;
 import com.fubangkun.srpgc.config.ConfigManagerSRPGC;
+import com.fubangkun.srpgc.world.BiomeXenosis;
+import com.fubangkun.srpgc.world.BiomeXenosisHarlequin;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -19,12 +21,13 @@ import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public final class SRPCompat {
 
-    public static final String BIOME_ID = Reference.MOD_ID + ":parasite_planet";
+    public static final String[] BIOME_IDS = {BiomeXenosis.REGISTRY_NAME, BiomeXenosisHarlequin.REGISTRY_NAME};
 
     private static SRPSaveData lastCheckedData;
 
@@ -128,8 +131,8 @@ public final class SRPCompat {
 
     private static void injectBiomeBlacklist() {
         if (SRPConfigWorld.biomeBlackListInverted) {
-            SRPGC.LOGGER.warn("SRP's biome blacklist is inverted, so {} cannot be added without making it the only convertible biome. Skipping injection.",
-                    BIOME_ID);
+            SRPGC.LOGGER.warn("SRP's biome blacklist is inverted, so {} cannot be added without making them the only convertible biomes. Skipping injection.",
+                    Arrays.toString(BIOME_IDS));
             return;
         }
 
@@ -138,17 +141,33 @@ public final class SRPCompat {
             current = new String[0];
         }
 
-        for (String value : current) {
-            if (BIOME_ID.equals(value)) {
-                SRPGC.LOGGER.info("SRP biome blacklist already contains {}.", BIOME_ID);
-                return;
+        List<String> missing = new ArrayList<>();
+        for (String biomeId : BIOME_IDS) {
+            if (excludes(current, biomeId)) {
+                missing.add(biomeId);
             }
         }
 
-        String[] updated = Arrays.copyOf(current, current.length + 1);
-        updated[current.length] = BIOME_ID;
+        if (missing.isEmpty()) {
+            SRPGC.LOGGER.info("SRP biome blacklist already contains {}.", Arrays.toString(BIOME_IDS));
+            return;
+        }
+
+        String[] updated = Arrays.copyOf(current, current.length + missing.size());
+        for (int i = 0; i < missing.size(); i++) {
+            updated[current.length + i] = missing.get(i);
+        }
         SRPConfigWorld.biomeBlackList = updated;
-        SRPGC.LOGGER.info("Injected {} into SRP biome blacklist; list is now {}.", BIOME_ID, Arrays.toString(updated));
+        SRPGC.LOGGER.info("Injected {} into SRP biome blacklist; list is now {}.", missing, Arrays.toString(updated));
+    }
+
+    private static boolean excludes(String[] values, String value) {
+        for (String entry : values) {
+            if (value.equals(entry)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static void logFailure(String target, Exception exception) {
@@ -245,19 +264,17 @@ public final class SRPCompat {
 
     private static void checkBiomeBlacklist() {
         if (SRPConfigWorld.biomeBlackListInverted) {
-            SRPGC.LOGGER.warn("SRP's biome blacklist is inverted; {} is not protected from biome spread.", BIOME_ID);
+            SRPGC.LOGGER.warn("SRP's biome blacklist is inverted; {} are not protected from biome spread.",
+                    Arrays.toString(BIOME_IDS));
             return;
         }
 
         String[] blacklist = SRPConfigWorld.biomeBlackList;
-        if (blacklist != null) {
-            for (String entry : blacklist) {
-                if (BIOME_ID.equals(entry)) {
-                    return;
-                }
+        for (String biomeId : BIOME_IDS) {
+            if (blacklist == null || excludes(blacklist, biomeId)) {
+                SRPGC.LOGGER.warn("SRP's biome blacklist no longer contains {}; node spread may replace that Xenosis biome.", biomeId);
             }
         }
-        SRPGC.LOGGER.warn("SRP's biome blacklist no longer contains {}; node spread may replace the Xenosis biome.", BIOME_ID);
     }
 
     @Mod.EventBusSubscriber(modid = Reference.MOD_ID)

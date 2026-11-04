@@ -122,6 +122,8 @@ public class WorldProviderXenosis extends WorldProviderSpace implements ISolarLe
         blocks.add(SRPBlocks.ParasiteStain);
         blocks.add(SRPBlocks.ParasiteRubble);
         blocks.add(SRPBlocks.ParasiteRubbleDense);
+        blocks.add(SRPBlocks.HarlequinnGrass);
+        blocks.add(SRPBlocks.HarleskinnBlock);
         return blocks;
     }
 
