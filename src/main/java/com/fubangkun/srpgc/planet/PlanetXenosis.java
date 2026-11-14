@@ -13,12 +13,16 @@ import micdoodle8.mods.galacticraft.api.GalacticraftRegistry;
 import micdoodle8.mods.galacticraft.api.galaxies.CelestialBody;
 import micdoodle8.mods.galacticraft.api.galaxies.GalaxyRegistry;
 import micdoodle8.mods.galacticraft.api.galaxies.Planet;
+import micdoodle8.mods.galacticraft.api.galaxies.SolarSystem;
 import micdoodle8.mods.galacticraft.api.world.AtmosphereInfo;
 import micdoodle8.mods.galacticraft.api.world.EnumAtmosphericGas;
 import micdoodle8.mods.galacticraft.core.GalacticraftCore;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.DimensionType;
 import net.minecraft.world.biome.Biome;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class PlanetXenosis {
 
@@ -30,7 +34,6 @@ public final class PlanetXenosis {
 
     public static void preInit() {
         Planet planet = new Planet(NAME);
-        planet.setParentSolarSystem(GalacticraftCore.solarSystemSol);
         planet.setRingColorRGB(0.35F, 0.05F, 0.08F);
         planet.setPhaseShift(0.42F);
         planet.setRelativeSize(0.48F);
@@ -64,6 +67,8 @@ public final class PlanetXenosis {
         }
 
         PLANET.setBiomeInfo(base);
+        SolarSystem system = resolveSolarSystem();
+        PLANET.setParentSolarSystem(system);
         PLANET.setDimensionInfo(ConfigManagerSRPGC.dimensionId, WorldProviderXenosis.class);
         PLANET.setTierRequired(ConfigManagerSRPGC.tier);
         // Xenosis burned out long before the parasites arrived; its air is toxic and cannot be breathed.
@@ -78,9 +83,32 @@ public final class PlanetXenosis {
         GalacticraftRegistry.registerRocketGui(WorldProviderXenosis.class,
                 new ResourceLocation(Reference.MOD_ID, "textures/gui/xenosis_rocket_gui.png"));
 
-        SRPGC.LOGGER.info("Registered planet {}: dimension={}, biomes={} + {} ({}% Harlequin), tier={}, startPhase={}",
-                NAME, ConfigManagerSRPGC.dimensionId, BiomeXenosis.REGISTRY_NAME, BiomeXenosisHarlequin.REGISTRY_NAME,
-                ConfigManagerSRPGC.harlequinPercent, ConfigManagerSRPGC.tier, ConfigManagerSRPGC.startPhase);
+        SRPGC.LOGGER.info("Registered planet {} in solar system {}: dimension={}, biomes={} + {} ({}% Harlequin), tier={}, startPhase={}",
+                NAME, system.getUnlocalizedName(), ConfigManagerSRPGC.dimensionId, BiomeXenosis.REGISTRY_NAME,
+                BiomeXenosisHarlequin.REGISTRY_NAME, ConfigManagerSRPGC.harlequinPercent, ConfigManagerSRPGC.tier,
+                ConfigManagerSRPGC.startPhase);
+    }
+
+    private static SolarSystem resolveSolarSystem() {
+        String configured = ConfigManagerSRPGC.solarSystem;
+        List<String> available = new ArrayList<>();
+        SolarSystem match = null;
+        for (SolarSystem system : GalaxyRegistry.getSolarSystems()) {
+            available.add(system.getUnlocalizedName());
+            if (system.getUnlocalizedName().equalsIgnoreCase(configured)) {
+                match = system;
+            }
+        }
+        SRPGC.LOGGER.info("Galacticraft solar systems: {}.", available);
+
+        if (configured.isEmpty() || "sol".equalsIgnoreCase(configured)) {
+            return GalacticraftCore.solarSystemSol;
+        }
+        if (match != null) {
+            return match;
+        }
+        SRPGC.LOGGER.warn("Solar system '{}' is not registered; Xenosis stays in Sol. Pick one of {}.", configured, available);
+        return GalacticraftCore.solarSystemSol;
     }
 
     public static void postInit() {

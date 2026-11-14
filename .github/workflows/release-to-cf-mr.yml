@@ -52,8 +52,12 @@ jobs:
 
           # Only include this section if you wish to publish
           # your assets on CurseForge.
-          curseforge-id: placeholder
+          curseforge-id: 1791120
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          curseforge-dependencies: |
+            564236(required)
+            348025(required)
 
           files: |
             release-assets/${{ steps.release.outputs.primary }}

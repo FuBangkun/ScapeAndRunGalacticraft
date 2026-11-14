@@ -14,6 +14,7 @@ public final class ConfigManagerSRPGC {
     private static final int DEFAULT_DIMENSION_ID = -40;
 
     public static int dimensionId = DEFAULT_DIMENSION_ID;
+    public static String solarSystem = "sol";
     public static int tier = 3;
     public static int startPhase = 4;
     public static boolean injectSRPConfig = true;
@@ -36,8 +37,10 @@ public final class ConfigManagerSRPGC {
 
         dimensionId = validateDimensionId(config.getInt("dimensionId", CATEGORY_GENERAL, DEFAULT_DIMENSION_ID, -1000000, -2,
                 "Dimension id of Xenosis. Must be negative and must not collide with another mod."));
-        tier = clamp(config.getInt("tier", CATEGORY_GENERAL, 3, 1, 3,
-                "Rocket tier required to reach Xenosis."), 1, 3);
+        solarSystem = config.getString("solarSystem", CATEGORY_GENERAL, "sol",
+                "Unlocalized name of the Galacticraft solar system Xenosis orbits. Use \"sol\" for the base game, or the name of a system added by GalaxySpace, ExtraPlanets or MorePlanets. All known names are logged at startup.").trim();
+        tier = clamp(config.getInt("tier", CATEGORY_GENERAL, 3, 1, 10,
+                "Rocket tier required to reach Xenosis."), 1, 10);
         startPhase = clamp(config.getInt("startPhase", CATEGORY_GENERAL, 4, 0, 10,
                 "SRP evolution phase used by the Xenosis spawn table."), 0, 10);
         injectSRPConfig = config.getBoolean("injectSRPConfig", CATEGORY_GENERAL, true,
@@ -63,8 +66,8 @@ public final class ConfigManagerSRPGC {
 
         config.save();
 
-        SRPGC.LOGGER.info("Loaded configuration: dimensionId={}, tier={}, startPhase={}, injectSRPConfig={}, harlequinPercent={}, seedOrigin={}, originRadius={}",
-                dimensionId, tier, startPhase, injectSRPConfig, harlequinPercent, seedOrigin, originRadius);
+        SRPGC.LOGGER.info("Loaded configuration: dimensionId={}, solarSystem={}, tier={}, startPhase={}, injectSRPConfig={}, harlequinPercent={}, seedOrigin={}, originRadius={}",
+                dimensionId, solarSystem, tier, startPhase, injectSRPConfig, harlequinPercent, seedOrigin, originRadius);
     }
 
     public static void debug(String message, Object... args) {

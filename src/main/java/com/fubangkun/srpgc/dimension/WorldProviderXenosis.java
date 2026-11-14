@@ -52,7 +52,8 @@ public class WorldProviderXenosis extends WorldProviderSpace implements ISolarLe
 
     @Override
     public Vector3 getSkyColor() {
-        return new Vector3(0.20F, 0.04F, 0.06F);
+        // Near-black so the star field and the parent system's planets stay visible.
+        return new Vector3(0.07F, 0.02F, 0.03F);
     }
 
     @Override
