@@ -8,7 +8,7 @@ It adds **Xenosis**, a planet that died long before the parasites reached it. It
 
 ## Features
 
-- **A toxic frontier.** Reach Xenosis with a Tier 3 rocket, but do not step outside without oxygen gear. The planet's atmosphere is unbreathable, and Galacticraft's oxygen system is the only thing standing between you and the air.
+- **A toxic frontier.** Reach Xenosis with a rocket, but do not step outside without oxygen gear. The planet's atmosphere is unbreathable, and Galacticraft's oxygen system is the only thing standing between you and the air.
 - **An alien sky.** Xenosis has its own skybox: stars, a tinted sun, and the other planets of whichever solar system it orbits — with no moon in sight. Change the solar system in the config and the sky changes with it.
 - **A barren world being rebuilt.** Xenosis is nearly lifeless: growths are sparse, and every patch of parasite flora is something the infection managed to keep alive on a dead planet.
 - **Two biome variants.** The surface is divided between the dark red Shrouded wastes and the sickly green Harlequin growths. The Harlequin regions are harsher: without a working oxygen setup they afflict you with nausea, weakness, and poison.
