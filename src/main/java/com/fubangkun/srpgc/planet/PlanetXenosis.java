@@ -66,10 +66,10 @@ public final class PlanetXenosis {
         PLANET.setBiomeInfo(base);
         PLANET.setDimensionInfo(ConfigManagerSRPGC.dimensionId, WorldProviderXenosis.class);
         PLANET.setTierRequired(ConfigManagerSRPGC.tier);
-        // SRP life originated on Earth, so Xenosis is habitable instead of an environmental hazard.
-        PLANET.setAtmosphere(new AtmosphereInfo(true, false, false, 0.0F, 1.0F, 1.0F));
-        PLANET.atmosphereComponent(EnumAtmosphericGas.NITROGEN);
-        PLANET.atmosphereComponent(EnumAtmosphericGas.OXYGEN);
+        // Xenosis burned out long before the parasites arrived; its air is toxic and cannot be breathed.
+        PLANET.setAtmosphere(new AtmosphereInfo(false, false, false, 0.0F, 1.0F, 1.0F));
+        PLANET.atmosphereComponent(EnumAtmosphericGas.CO2);
+        PLANET.atmosphereComponent(EnumAtmosphericGas.METHANE);
         PLANET.atmosphereComponent(EnumAtmosphericGas.ARGON);
         PLANET.setBodyIcon(new ResourceLocation(Reference.MOD_ID, "textures/gui/celestialbodies/xenosis.png"));
 

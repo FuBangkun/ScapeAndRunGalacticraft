@@ -9,6 +9,7 @@ public final class ConfigManagerSRPGC {
     private static final String CATEGORY_GENERAL = "general";
     private static final String CATEGORY_BIOMES = "biomes";
     private static final String CATEGORY_ORIGIN = "origin";
+    private static final String CATEGORY_GAMEPLAY = "gameplay";
     private static final String CATEGORY_DEBUG = "debug";
     private static final int DEFAULT_DIMENSION_ID = -40;
 
@@ -18,6 +19,10 @@ public final class ConfigManagerSRPGC {
     public static boolean injectSRPConfig = true;
     public static int harlequinPercent = 35;
     public static int harlequinRegionChunks = 10;
+    public static boolean harlequinHazard = true;
+    public static int floraDensityPercent = 35;
+    public static float xenosisMobStatMultiplier = 1.5F;
+    public static float overworldMobStatMultiplier = 0.75F;
     public static boolean seedOrigin = true;
     public static int originRadius = 200;
     public static boolean debugLogging = false;
@@ -41,6 +46,14 @@ public final class ConfigManagerSRPGC {
                 "Approximate share of the Xenosis surface covered by the Harlequin parasite biome variant. Set 0 for a single biome planet."), 0, 100);
         harlequinRegionChunks = clamp(config.getInt("harlequinRegionChunks", CATEGORY_BIOMES, 10, 1, 64,
                 "Side length in chunks of one Harlequin region cell. Larger cells make fewer, bigger patches."), 1, 64);
+        harlequinHazard = config.getBoolean("harlequinHazard", CATEGORY_BIOMES, true,
+                "Inside Harlequin regions, players without valid Galacticraft oxygen gear suffer nausea, weakness and poison.");
+        floraDensityPercent = clamp(config.getInt("floraDensityPercent", CATEGORY_BIOMES, 35, 0, 100,
+                "Percentage of the normal parasite flora and growths kept on Xenosis. Lower values make the planet more barren."), 0, 100);
+        xenosisMobStatMultiplier = config.getFloat("xenosisMobStatMultiplier", CATEGORY_GAMEPLAY, 1.5F, 0.1F, 10.0F,
+                "Health, attack damage and armor multiplier for Scape and Run parasites spawned on Xenosis.");
+        overworldMobStatMultiplier = config.getFloat("overworldMobStatMultiplier", CATEGORY_GAMEPLAY, 0.75F, 0.1F, 10.0F,
+                "Health, attack damage and armor multiplier for Scape and Run parasites spawned in the Overworld.");
         seedOrigin = config.getBoolean("seedOrigin", CATEGORY_ORIGIN, true,
                 "Seed one SRP emerging infestation vector (origin) at the Xenosis world spawn.");
         originRadius = clamp(config.getInt("originRadius", CATEGORY_ORIGIN, 200, 1, 100000,

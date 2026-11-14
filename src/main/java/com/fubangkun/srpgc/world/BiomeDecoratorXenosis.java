@@ -2,6 +2,7 @@ package com.fubangkun.srpgc.world;
 
 import com.dhanantry.scapeandrunparasites.block.BlockParasiteBush;
 import com.dhanantry.scapeandrunparasites.world.gen.feature.*;
+import com.fubangkun.srpgc.config.ConfigManagerSRPGC;
 import micdoodle8.mods.galacticraft.api.prefab.world.gen.BiomeDecoratorSpace;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -50,8 +51,15 @@ public class BiomeDecoratorXenosis extends BiomeDecoratorSpace {
     }
 
     private void place(WorldGenerator generator, int count) {
+        // Xenosis is mostly barren; the configured share is what the parasites managed to keep alive.
+        double scaled = count * ConfigManagerSRPGC.floraDensityPercent / 100.0D;
+        int placements = (int) Math.floor(scaled);
+        if (this.rand.nextDouble() < scaled - placements) {
+            placements++;
+        }
+
         World world = this.getCurrentWorld();
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < placements; i++) {
             // The vanilla +8 offset keeps decoration spill inside the already loaded +X/+Z neighbors.
             BlockPos pos = world.getHeight(new BlockPos(this.posX + DECORATION_OFFSET + this.rand.nextInt(16), 0,
                     this.posZ + DECORATION_OFFSET + this.rand.nextInt(16)));
